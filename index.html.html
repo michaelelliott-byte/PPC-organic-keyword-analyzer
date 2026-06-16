@@ -1,0 +1,458 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.app{padding:1.25rem 0}
+.header{margin-bottom:1.5rem}
+.header h1{font-size:18px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.header p{font-size:13px;color:var(--color-text-secondary)}
+.tabs{display:flex;gap:8px;margin-bottom:1.5rem;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:0}
+.tab{font-size:13px;font-weight:400;color:var(--color-text-secondary);padding:6px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-0.5px;background:none;border-top:none;border-left:none;border-right:none;transition:color .15s}
+.tab.active{color:var(--color-text-primary);border-bottom-color:var(--color-text-primary);font-weight:500}
+.tab:hover:not(.active){color:var(--color-text-primary)}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.metric-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
+.metric-card .m-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.metric-card .m-value{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.metric-card .m-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.metric-card .m-value.good{color:#1D9E75}
+.metric-card .m-value.warn{color:#BA7517}
+.metric-card .m-value.bad{color:#D85A30}
+.chart-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1rem}
+.chart-card h3{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.chart-card .chart-sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem}
+.chart-wrap{position:relative;width:100%}
+.insight-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 14px;font-size:12px;color:var(--color-text-secondary);margin-top:10px;display:flex;gap:8px;align-items:flex-start}
+.insight-box i{font-size:14px;margin-top:1px;flex-shrink:0;color:#185FA5}
+.controls-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.5rem}
+.ctrl-group label{font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:4px}
+.ctrl-group select,.ctrl-group input{width:100%;font-size:13px}
+.upload-zone{border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-lg);padding:2rem;text-align:center;cursor:pointer;transition:background .15s;margin-bottom:1rem}
+.upload-zone:hover{background:var(--color-background-secondary)}
+.upload-zone i{font-size:32px;color:var(--color-text-tertiary);display:block;margin-bottom:8px}
+.upload-zone p{font-size:13px;color:var(--color-text-secondary)}
+.upload-zone .hint{font-size:11px;color:var(--color-text-tertiary);margin-top:4px}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-align:left;padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.data-table td{padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary)}
+.data-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:var(--border-radius-md);font-weight:500}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.legend-row{display:flex;flex-wrap:wrap;gap:14px;font-size:11px;color:var(--color-text-secondary);margin-bottom:12px}
+.legend-row span{display:flex;align-items:center;gap:5px}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.dimret-marker{background:rgba(209,58,48,.15);border:1px dashed #D85A30;border-radius:var(--border-radius-md);padding:6px 10px;font-size:11px;color:#D85A30;display:inline-flex;align-items:center;gap:5px;margin-top:8px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+</style>
+
+<div class="app">
+  <h2 class="sr-only">PPC vs Organic performance analyzer for Amazon keywords</h2>
+
+  <div class="header">
+    <h1>PPC & organic keyword analyzer</h1>
+    <p>Correlate PPC spend with organic rank and SQP purchase share to find redundancy and diminishing returns</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
+    <button class="tab" onclick="showTab('data')">Data input</button>
+    <button class="tab" onclick="showTab('analysis')">Correlation analysis</button>
+    <button class="tab" onclick="showTab('insights')">Insights</button>
+  </div>
+
+  <div id="tab-dashboard">
+    <div class="controls-row">
+      <div class="ctrl-group">
+        <label>Keyword</label>
+        <select id="kw-select" onchange="updateDashboard()">
+          <option value="0">yoga mat non-slip</option>
+          <option value="1">yoga mat thick</option>
+          <option value="2">exercise mat</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Date range</label>
+        <select id="range-select" onchange="updateDashboard()">
+          <option value="all">All weeks</option>
+          <option value="12">Last 12 weeks</option>
+          <option value="8">Last 8 weeks</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Metric overlay</label>
+        <select id="metric-select" onchange="updateDashboard()">
+          <option value="purchase_share">Purchase share %</option>
+          <option value="click_share">Click share %</option>
+          <option value="impression_share">Impression share %</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="metrics-row" id="metric-cards"></div>
+
+    <div class="chart-card">
+      <h3>PPC spend vs organic rank over time</h3>
+      <p class="chart-sub">Lower rank = better position. Watch for rank improvement lagging spend changes.</p>
+      <div class="legend-row">
+        <span><span class="leg-dot" style="background:#378ADD"></span>Weekly PPC spend (£)</span>
+        <span><span class="leg-dot" style="background:#1D9E75"></span>Organic rank (right axis)</span>
+        <span><span class="leg-dot" style="background:#BA7517;opacity:.6"></span>SQP metric</span>
+      </div>
+      <div class="chart-wrap" style="height:260px"><canvas id="timeChart" role="img" aria-label="Line chart showing PPC spend, organic rank, and SQP metric over time"></canvas></div>
+      <div class="insight-box" id="trend-insight"><i class="ti ti-info-circle" aria-hidden="true"></i><span id="trend-text">Loading insight...</span></div>
+    </div>
+
+    <div class="two-col">
+      <div class="chart-card">
+        <h3>Spend vs purchase share scatter</h3>
+        <p class="chart-sub">Each dot = one week. Curve flattening = diminishing returns.</p>
+        <div class="chart-wrap" style="height:220px"><canvas id="scatterChart" role="img" aria-label="Scatter chart of weekly PPC spend vs organic purchase share"></canvas></div>
+        <div id="dimret-container"></div>
+      </div>
+      <div class="chart-card">
+        <h3>Organic rank vs SQP purchase share</h3>
+        <p class="chart-sub">Validates whether rank position drives organic revenue.</p>
+        <div class="chart-wrap" style="height:220px"><canvas id="rankChart" role="img" aria-label="Scatter chart of organic rank vs SQP purchase share"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-data" style="display:none">
+    <div class="upload-zone" onclick="document.getElementById('csv-upload').click()">
+      <i class="ti ti-upload" aria-hidden="true"></i>
+      <p>Upload your aggregated CSV</p>
+      <p class="hint">Expected columns: week, keyword, ppc_spend, organic_rank, purchase_share, click_share, impression_share</p>
+      <input type="file" id="csv-upload" accept=".csv" style="display:none" onchange="handleCSV(this)">
+    </div>
+    <div class="chart-card">
+      <h3>Sample data (demo mode)</h3>
+      <p class="chart-sub">Replace with your own CSV or edit values below. Changes update all charts live.</p>
+      <table class="data-table" id="data-preview"></table>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:10px">
+      <button onclick="addRow()" style="font-size:13px"><i class="ti ti-plus" aria-hidden="true"></i> Add week</button>
+      <button onclick="exportCSV()" style="font-size:13px"><i class="ti ti-download" aria-hidden="true"></i> Export CSV</button>
+    </div>
+  </div>
+
+  <div id="tab-analysis" style="display:none">
+    <div class="chart-card">
+      <h3>Marginal return on PPC spend</h3>
+      <p class="chart-sub">Rate of change in purchase share per £100 additional spend. Flat or negative = diminishing returns zone.</p>
+      <div class="chart-wrap" style="height:240px"><canvas id="marginalChart" role="img" aria-label="Bar chart of marginal purchase share gain per £100 PPC spend by spend bracket"></canvas></div>
+      <div class="insight-box" id="marginal-insight"><i class="ti ti-info-circle" aria-hidden="true"></i><span id="marginal-text"></span></div>
+    </div>
+    <div class="chart-card">
+      <h3>Redundancy indicator: PPC spend when already ranking well</h3>
+      <p class="chart-sub">High spend with top organic rank (1–5) may indicate wasted budget — your organic presence could convert without paid support.</p>
+      <div class="chart-wrap" style="height:220px"><canvas id="redundancyChart" role="img" aria-label="Scatter of weeks by organic rank and PPC spend, coloured by purchase share"></canvas></div>
+    </div>
+    <div class="two-col" style="margin-top:12px">
+      <div class="chart-card">
+        <h3>Correlation matrix</h3>
+        <p class="chart-sub">Pearson r between key variables for selected keyword</p>
+        <div id="corr-matrix"></div>
+      </div>
+      <div class="chart-card">
+        <h3>Spend efficiency score by week</h3>
+        <p class="chart-sub">Purchase share ÷ normalised spend — higher is more efficient</p>
+        <div class="chart-wrap" style="height:180px"><canvas id="efficiencyChart" role="img" aria-label="Bar chart of weekly spend efficiency scores"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-insights" style="display:none">
+    <div id="insights-content"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const KEYWORDS = ['yoga mat non-slip','yoga mat thick','exercise mat'];
+
+function genData(kwIdx){
+  const weeks=16; const rows=[];
+  const baseSpend=[420,380,310][kwIdx];
+  const baseRank=[3,6,12][kwIdx];
+  const basePurch=[8.2,5.6,3.1][kwIdx];
+  for(let w=0;w<weeks;w++){
+    const spend=Math.max(50,baseSpend + (w-8)*18 + (Math.random()-0.5)*60);
+    const rankEffect=Math.max(1,baseRank - spend/220 + (Math.random()-0.5)*1.5);
+    const purchShare=Math.min(30,basePurch + spend/180 - Math.max(0,(spend-500)/600) + (Math.random()-0.5)*0.8);
+    const clickShare=Math.min(40,purchShare*1.4+(Math.random()-0.5)*1.2);
+    const impShare=Math.min(60,purchShare*2.2+(Math.random()-0.5)*2);
+    rows.push({week:`W${w+1}`,keyword:KEYWORDS[kwIdx],ppc_spend:Math.round(spend),organic_rank:parseFloat(rankEffect.toFixed(1)),purchase_share:parseFloat(purchShare.toFixed(2)),click_share:parseFloat(clickShare.toFixed(2)),impression_share:parseFloat(impShare.toFixed(2))});
+  }
+  return rows;
+}
+
+let allData=[genData(0),genData(1),genData(2)];
+let charts={};
+
+function pearson(x,y){
+  const n=x.length; const mx=x.reduce((a,b)=>a+b,0)/n; const my=y.reduce((a,b)=>a+b,0)/n;
+  let num=0,dx=0,dy=0;
+  for(let i=0;i<n;i++){num+=(x[i]-mx)*(y[i]-my);dx+=(x[i]-mx)**2;dy+=(y[i]-my)**2;}
+  return (dx&&dy)?num/Math.sqrt(dx*dy):0;
+}
+
+function getData(){
+  const kwIdx=+document.getElementById('kw-select').value;
+  const range=document.getElementById('range-select').value;
+  let d=[...allData[kwIdx]];
+  if(range!=='all') d=d.slice(-parseInt(range));
+  return d;
+}
+
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function updateDashboard(){
+  const d=getData();
+  const metric=document.getElementById('metric-select').value;
+  const spends=d.map(r=>r.ppc_spend);
+  const ranks=d.map(r=>r.organic_rank);
+  const purch=d.map(r=>r.purchase_share);
+  const metricVals=d.map(r=>r[metric]);
+  const labels=d.map(r=>r.week);
+
+  const avgSpend=spends.reduce((a,b)=>a+b,0)/spends.length;
+  const avgRank=ranks.reduce((a,b)=>a+b,0)/ranks.length;
+  const avgPurch=purch.reduce((a,b)=>a+b,0)/purch.length;
+  const corrSP=pearson(spends,purch);
+
+  const metricLabels={purchase_share:'Avg purchase share',click_share:'Avg click share',impression_share:'Avg impression share'};
+  const metricUnits={purchase_share:'%',click_share:'%',impression_share:'%'};
+
+  document.getElementById('metric-cards').innerHTML=`
+    <div class="metric-card"><div class="m-label">Avg weekly spend</div><div class="m-value">£${Math.round(avgSpend)}</div><div class="m-sub">per week</div></div>
+    <div class="metric-card"><div class="m-label">Avg organic rank</div><div class="m-value ${avgRank<=5?'good':avgRank<=10?'warn':'bad'}">#${avgRank.toFixed(1)}</div><div class="m-sub">lower is better</div></div>
+    <div class="metric-card"><div class="m-label">Avg purchase share</div><div class="m-value ${avgPurch>=7?'good':avgPurch>=4?'warn':'bad'}">${avgPurch.toFixed(1)}%</div><div class="m-sub">of SQP</div></div>
+    <div class="metric-card"><div class="m-label">Spend→purchase corr</div><div class="m-value ${Math.abs(corrSP)>=0.6?'good':Math.abs(corrSP)>=0.3?'warn':'bad'}">${corrSP.toFixed(2)}</div><div class="m-sub">Pearson r</div></div>
+  `;
+
+  destroyChart('timeChart');
+  charts.timeChart=new Chart(document.getElementById('timeChart'),{
+    data:{labels,datasets:[
+      {type:'bar',label:'PPC spend (£)',data:spends,backgroundColor:'rgba(55,138,221,.25)',borderColor:'#378ADD',borderWidth:1,yAxisID:'y'},
+      {type:'line',label:'Organic rank',data:ranks,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.1)',tension:.4,yAxisID:'y2',pointRadius:3},
+      {type:'line',label:metricLabels[metric],data:metricVals,borderColor:'#BA7517',backgroundColor:'rgba(186,117,23,.08)',tension:.4,yAxisID:'y3',pointRadius:3,borderDash:[4,3]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+      y:{position:'left',title:{display:true,text:'Spend (£)',font:{size:10}},grid:{color:'rgba(128,128,128,.08)'}},
+      y2:{position:'right',title:{display:true,text:'Rank',font:{size:10}},reverse:true,grid:{display:false},min:1},
+      y3:{display:false}
+    }}
+  });
+
+  const sortedBySpend=[...d].sort((a,b)=>a.ppc_spend-b.ppc_spend);
+  const maxSpend=Math.max(...spends);
+  const dimRetPoint=findDiminishingReturn(sortedBySpend);
+
+  destroyChart('scatterChart');
+  charts.scatterChart=new Chart(document.getElementById('scatterChart'),{
+    type:'scatter',
+    data:{datasets:[{
+      label:'Weekly data',
+      data:sortedBySpend.map(r=>({x:r.ppc_spend,y:r.purchase_share})),
+      backgroundColor:sortedBySpend.map((r,i)=>i>=dimRetPoint?'rgba(216,90,48,.55)':'rgba(55,138,221,.55)'),
+      pointRadius:5,pointHoverRadius:7
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:p=>`Spend: £${p.parsed.x} → ${p.parsed.y.toFixed(1)}% share`}}},
+    scales:{x:{title:{display:true,text:'PPC spend (£)',font:{size:10}},grid:{color:'rgba(128,128,128,.08)'}},y:{title:{display:true,text:'Purchase share %',font:{size:10}},grid:{color:'rgba(128,128,128,.08)'}}}}
+  });
+
+  const dimSpend=sortedBySpend[dimRetPoint]?.ppc_spend;
+  document.getElementById('dimret-container').innerHTML=dimSpend?`<div class="dimret-marker"><i class="ti ti-trending-down" aria-hidden="true"></i> Diminishing returns ~£${Math.round(dimSpend)}/week (red dots)</div>`:'';
+
+  destroyChart('rankChart');
+  charts.rankChart=new Chart(document.getElementById('rankChart'),{
+    type:'scatter',
+    data:{datasets:[{label:'Weekly data',data:d.map(r=>({x:r.organic_rank,y:r.purchase_share})),backgroundColor:'rgba(29,158,117,.55)',pointRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:p=>`Rank #${p.parsed.x} → ${p.parsed.y.toFixed(1)}% share`}}},
+    scales:{x:{title:{display:true,text:'Organic rank',font:{size:10}},reverse:true},y:{title:{display:true,text:'Purchase share %',font:{size:10}}}}}
+  });
+
+  const trendCorr=pearson(d.slice(-4).map(r=>r.ppc_spend),d.slice(-4).map(r=>r.organic_rank));
+  document.getElementById('trend-text').textContent=corrSP>=0.6?`Strong positive correlation (r=${corrSP.toFixed(2)}): PPC spend is clearly lifting purchase share. Monitor rank: average #${avgRank.toFixed(1)}.`:corrSP>=0.3?`Moderate correlation (r=${corrSP.toFixed(2)}): PPC provides some lift but organic factors also play a role.`:`Weak correlation (r=${corrSP.toFixed(2)}): PPC spend has limited measurable impact on purchase share for this keyword. Consider reducing budget.`;
+
+  updateAnalysis(d);
+  updateInsights(d,dimSpend,corrSP,avgRank);
+  updateDataTable(allData[+document.getElementById('kw-select').value]);
+}
+
+function findDiminishingReturn(sorted){
+  if(sorted.length<4) return sorted.length;
+  const gains=[];
+  for(let i=1;i<sorted.length;i++){
+    const dSpend=sorted[i].ppc_spend-sorted[i-1].ppc_spend;
+    const dPurch=sorted[i].purchase_share-sorted[i-1].purchase_share;
+    gains.push(dSpend>0?dPurch/dSpend*100:0);
+  }
+  const peak=Math.max(...gains); const peakIdx=gains.indexOf(peak);
+  for(let i=peakIdx;i<gains.length;i++){if(gains[i]<peak*0.25) return i+1;}
+  return sorted.length;
+}
+
+function updateAnalysis(d){
+  const spends=d.map(r=>r.ppc_spend);
+  const purch=d.map(r=>r.purchase_share);
+  const ranks=d.map(r=>r.organic_rank);
+  const maxS=Math.max(...spends);
+  const brackets=[0,100,200,300,400,500,600,700,800];
+  const margLabels=[];const margVals=[];
+  for(let i=0;i<brackets.length-1;i++){
+    const lo=brackets[i],hi=brackets[i+1];
+    const pts=d.filter(r=>r.ppc_spend>=lo&&r.ppc_spend<hi);
+    if(pts.length>=2){
+      const avgP=pts.map(r=>r.purchase_share).reduce((a,b)=>a+b,0)/pts.length;
+      margLabels.push(`£${lo}-${hi}`);
+      margVals.push(parseFloat(avgP.toFixed(2)));
+    }
+  }
+
+  destroyChart('marginalChart');
+  charts.marginalChart=new Chart(document.getElementById('marginalChart'),{
+    type:'bar',
+    data:{labels:margLabels,datasets:[{label:'Avg purchase share %',data:margVals,backgroundColor:margVals.map((v,i)=>i>0&&v<=margVals[i-1]?'rgba(216,90,48,.6)':'rgba(55,138,221,.6)'),borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{autoSkip:false,maxRotation:45,font:{size:10}}},y:{title:{display:true,text:'Avg purchase share %',font:{size:10}}}}}
+  });
+
+  const peakBracket=margLabels[margVals.indexOf(Math.max(...margVals))];
+  document.getElementById('marginal-text').textContent=`Purchase share peaks in the ${peakBracket} spend bracket. Bars shaded red indicate brackets where average purchase share declined vs the previous bracket — potential over-spend zones.`;
+
+  const topRankWeeks=d.filter(r=>r.organic_rank<=5);
+  const lowRankWeeks=d.filter(r=>r.organic_rank>5);
+  const avgSpendTop=topRankWeeks.length?topRankWeeks.map(r=>r.ppc_spend).reduce((a,b)=>a+b,0)/topRankWeeks.length:0;
+  const avgSpendLow=lowRankWeeks.length?lowRankWeeks.map(r=>r.ppc_spend).reduce((a,b)=>a+b,0)/lowRankWeeks.length:0;
+
+  destroyChart('redundancyChart');
+  charts.redundancyChart=new Chart(document.getElementById('redundancyChart'),{
+    type:'scatter',
+    data:{datasets:[{
+      label:'Weeks',
+      data:d.map(r=>({x:r.organic_rank,y:r.ppc_spend,ps:r.purchase_share})),
+      backgroundColor:d.map(r=>r.organic_rank<=5&&r.ppc_spend>avgSpendTop?'rgba(216,90,48,.7)':r.organic_rank<=5?'rgba(29,158,117,.6)':'rgba(55,138,221,.4)'),
+      pointRadius:6
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:p=>`Rank #${p.parsed.x}, Spend £${p.parsed.y} → ${p.raw.ps.toFixed(1)}% share`}}},
+    scales:{x:{title:{display:true,text:'Organic rank (lower=better)',font:{size:10}},reverse:true},y:{title:{display:true,text:'PPC spend (£)',font:{size:10}}}}}
+  });
+
+  const corrSP=pearson(spends,purch);
+  const corrRP=pearson(ranks,purch);
+  const corrSR=pearson(spends,ranks);
+  const corrMatrix=[
+    {label:'Spend → purchase share',r:corrSP},
+    {label:'Rank → purchase share',r:corrRP},
+    {label:'Spend → rank improvement',r:corrSR}
+  ];
+  document.getElementById('corr-matrix').innerHTML=corrMatrix.map(c=>{
+    const pct=Math.abs(c.r)*100;
+    const col=Math.abs(c.r)>=0.6?'#1D9E75':Math.abs(c.r)>=0.3?'#BA7517':'#D85A30';
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:3px"><span>${c.label}</span><span style="font-weight:500;color:var(--color-text-primary)">${c.r.toFixed(2)}</span></div>
+      <div style="background:var(--color-background-secondary);border-radius:4px;height:6px"><div style="background:${col};width:${pct}%;height:100%;border-radius:4px;transition:width .3s"></div></div>
+    </div>`;
+  }).join('');
+
+  const efficiency=d.map(r=>r.purchase_share/Math.max(1,r.ppc_spend/100));
+  destroyChart('efficiencyChart');
+  charts.efficiencyChart=new Chart(document.getElementById('efficiencyChart'),{
+    type:'bar',
+    data:{labels:d.map(r=>r.week),datasets:[{label:'Efficiency',data:efficiency.map(e=>parseFloat(e.toFixed(3))),backgroundColor:efficiency.map(e=>e>=Math.max(...efficiency)*0.7?'rgba(29,158,117,.6)':'rgba(136,135,128,.4)'),borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},maxRotation:45,autoSkip:true}},y:{title:{display:true,text:'Share per £100',font:{size:10}}}}}
+  });
+}
+
+function updateInsights(d,dimSpend,corrSP,avgRank){
+  const spends=d.map(r=>r.ppc_spend);
+  const purch=d.map(r=>r.purchase_share);
+  const avgSpend=spends.reduce((a,b)=>a+b,0)/spends.length;
+  const topRankWeeks=d.filter(r=>r.organic_rank<=5);
+  const redundancyPct=topRankWeeks.length?Math.round(topRankWeeks.filter(r=>r.ppc_spend>avgSpend).length/topRankWeeks.length*100):0;
+
+  const insights=[
+    {icon:'ti-trending-up',title:'Correlation strength',badge:Math.abs(corrSP)>=0.6?'strong':Math.abs(corrSP)>=0.3?'moderate':'weak',badgeClass:Math.abs(corrSP)>=0.6?'badge-green':Math.abs(corrSP)>=0.3?'badge-amber':'badge-red',body:`PPC spend and purchase share correlation is r=${corrSP.toFixed(2)}. ${Math.abs(corrSP)>=0.6?'Your spend is meaningfully driving organic purchase performance.':Math.abs(corrSP)>=0.3?'Spend has partial impact — organic factors are also significant.':'Spend changes have minimal effect on purchase share. Review your keyword targeting strategy.'}`},
+    {icon:'ti-trending-down',title:'Diminishing returns threshold',badge:dimSpend?`~£${Math.round(dimSpend)}/wk`:'not detected',badgeClass:'badge-amber',body:dimSpend?`Purchase share gains flatten significantly above £${Math.round(dimSpend)}/week for this keyword. Additional spend beyond this point is unlikely to deliver proportional returns.`:`No clear diminishing returns threshold detected in the current data range. Continue monitoring as spend increases.`},
+    {icon:'ti-refresh',title:'PPC redundancy signal',badge:`${redundancyPct}% of top-rank weeks`,badgeClass:redundancyPct>50?'badge-red':redundancyPct>25?'badge-amber':'badge-green',body:`In ${redundancyPct}% of weeks where you ranked organically in positions 1–5, you still spent above average on PPC. ${redundancyPct>50?'This suggests significant budget redundancy — consider a rank-triggered spend rule: reduce PPC when organic rank is ≤5.':redundancyPct>25?'Some redundancy present. Test a modest PPC reduction during strong organic ranking periods.':'Low redundancy — your spend adjustments appear well-calibrated to organic rank.'}`},
+    {icon:'ti-star',title:'Average organic rank',badge:`#${(d.map(r=>r.organic_rank).reduce((a,b)=>a+b,0)/d.length).toFixed(1)}`,badgeClass:avgRank<=5?'badge-green':avgRank<=10?'badge-amber':'badge-red',body:`Average rank of ${avgRank.toFixed(1)} over the selected period. ${avgRank<=5?'Strong organic presence — PPC may be supplementary rather than foundational for this keyword.':avgRank<=10?'Mid-tier organic position — PPC is likely providing meaningful visibility lift.':'Low organic rank — PPC is essential for visibility. Focus on improving organic rank through listing and review quality.'}`},
+    {icon:'ti-bulb',title:'Recommended action',badge:'action',badgeClass:'badge-green',body:corrSP>=0.6&&avgRank<=5&&redundancyPct>40?`Reduce PPC by 20–30% when organic rank is ≤5. Set up a rank-monitoring rule: maintain £${dimSpend?Math.round(dimSpend*0.7):Math.round(avgSpend*0.7)} ceiling. Re-evaluate in 4 weeks.`:corrSP<0.3?`This keyword's purchase share is driven by factors other than PPC spend. Audit your ad creative, match types, and SQP search term report for irrelevant traffic.`:`Maintain current spend near £${dimSpend?Math.round(dimSpend):Math.round(avgSpend)}/week. Implement a rank-conditional bid rule: increase bids when rank drops below 8, reduce when rank is ≤4.`}
+  ];
+
+  document.getElementById('insights-content').innerHTML=insights.map(ins=>`
+    <div class="chart-card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <i class="ti ${ins.icon}" aria-hidden="true" style="font-size:16px;color:#378ADD"></i>
+        <span style="font-size:13px;font-weight:500;color:var(--color-text-primary)">${ins.title}</span>
+        <span class="badge ${ins.badgeClass}">${ins.badge}</span>
+      </div>
+      <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.6">${ins.body}</p>
+    </div>
+  `).join('');
+}
+
+function updateDataTable(d){
+  const cols=['week','ppc_spend','organic_rank','purchase_share','click_share','impression_share'];
+  const headers=['Week','Spend (£)','Org. rank','Purchase %','Click %','Impression %'];
+  document.getElementById('data-preview').innerHTML=`<thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${d.map((r,ri)=>`<tr>${cols.map((c,ci)=>`<td contenteditable="${ci>0}" onblur="cellEdit(${ri},'${c}',this.textContent)">${r[c]}</td>`).join('')}</tr>`).join('')}</tbody>`;
+}
+
+function cellEdit(rowIdx,col,val){
+  const kwIdx=+document.getElementById('kw-select').value;
+  allData[kwIdx][rowIdx][col]=isNaN(val)?val:parseFloat(val);
+  updateDashboard();
+}
+
+function addRow(){
+  const kwIdx=+document.getElementById('kw-select').value;
+  const d=allData[kwIdx];
+  const last=d[d.length-1];
+  d.push({week:`W${d.length+1}`,keyword:KEYWORDS[kwIdx],ppc_spend:last.ppc_spend,organic_rank:last.organic_rank,purchase_share:last.purchase_share,click_share:last.click_share,impression_share:last.impression_share});
+  updateDashboard();
+}
+
+function exportCSV(){
+  const kwIdx=+document.getElementById('kw-select').value;
+  const d=allData[kwIdx];
+  const cols=['week','keyword','ppc_spend','organic_rank','purchase_share','click_share','impression_share'];
+  const csv=[cols.join(','),...d.map(r=>cols.map(c=>r[c]).join(','))].join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='keyword_data.csv';a.click();
+}
+
+function handleCSV(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const lines=e.target.result.trim().split('\n');
+    const headers=lines[0].split(',').map(h=>h.trim());
+    const kwGroups={};
+    lines.slice(1).forEach(line=>{
+      const vals=line.split(',');
+      const row={};
+      headers.forEach((h,i)=>row[h]=isNaN(vals[i])?vals[i].trim():parseFloat(vals[i]));
+      const kw=row.keyword||'unknown';
+      if(!kwGroups[kw]) kwGroups[kw]=[];
+      kwGroups[kw].push(row);
+    });
+    const kwList=Object.keys(kwGroups);
+    allData=kwList.map(k=>kwGroups[k]);
+    const sel=document.getElementById('kw-select');
+    sel.innerHTML=kwList.map((k,i)=>`<option value="${i}">${k}</option>`).join('');
+    updateDashboard();
+  };
+  reader.readAsText(file);
+}
+
+function showTab(t){
+  ['dashboard','data','analysis','insights'].forEach(id=>{
+    document.getElementById(`tab-${id}`).style.display=id===t?'block':'none';
+    document.querySelectorAll('.tab')[['dashboard','data','analysis','insights'].indexOf(id)].classList.toggle('active',id===t);
+  });
+  if(t==='analysis'||t==='insights') updateDashboard();
+}
+
+updateDashboard();
+</script>
